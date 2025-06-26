@@ -1,27 +1,28 @@
-# This example show how to use inline keyboards and process button presses
-import telebot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+import telebot 
+from Config import TG_TOKEN  # type: ignore
 
-TELEGRAM_TOKEN = '<TOKEN>'
 
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
+bot = telebot.TeleBot(TG_TOKEN) 
 
-def gen_markup():
-    markup = InlineKeyboardMarkup()
-    markup.row_width = 2
-    markup.add(InlineKeyboardButton("Yes", callback_data="cb_yes"),
-                               InlineKeyboardButton("No", callback_data="cb_no"))
-    return markup
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-    if call.data == "cb_yes":
-        bot.answer_callback_query(call.id, "Answer is Yes")
-    elif call.data == "cb_no":
-        bot.answer_callback_query(call.id, "Answer is No")
+# @bot.message_handler(КРИТЕРИЙ_ОБРАБОТКИ) 
+# def ...(message):
+#     .... 
 
-@bot.message_handler(func=lambda message: True)
-def message_handler(message):
-    bot.send_message(message.chat.id, "Yes/no?", reply_markup=gen_markup())
+# 1 критерий - команды 
+@bot.message_handler(commands=['start' , 'help']) #/start, /help
+def start_command(message):
+    bot.send_message(message.chat.id, 'Привет,  пользавотель! ') 
+
+
+#2 критерий - тип сообщения 
+@bot.message_handler(content_types=['sticker']) # 'audio', 'photo', 'voice',  'video', 'document',  'text', 'look'
+def handle_sticker(message):
+    bot.reply_to(message, 'Вау,  какой крутой стикер! ') 
+
+# 3 критерий - лямбда-функция (собственный критерий) 
+@bot.message_handler(func=lambda message: 'блин' in message.text.lower()) 
+def handler_blin(message):
+    bot.reply_to(message, f' слушай, {message.from_user.first_name}, я люблю блины') #json viewer 
 
 bot.infinity_polling()
